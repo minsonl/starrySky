@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>星空</title>
+<style type="text/css">
+	*{margin: 0;padding: 0;}
+	body{background-color: #000;overflow: hidden;}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+	class starrySky{
+		constructor(canvas){
+			this.canvas = canvas;
+			this.num = 250;
+			this.data = [];
+			this.init();
+		}
+		init(){
+			this.ctx = canvas.getContext('2d');
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;	
+			this.canvasWidth = canvas.width;
+			this.canvasHeight = canvas.height;
+			this.mouseLocation = {}
+			for(let i=0;i<this.num;i++){
+				this.data[i]={
+					x:Math.random()*this.canvasWidth,
+					y:Math.random()*this.canvasHeight,
+					nextX:Math.random() *0.6 - 0.4,
+					nextY:Math.random() *0.6 - 0.4,
+				};
+				this.drawCirecle(this.data[i]);
+			}
+			setInterval(()=>{this.moveCirecle()},60)
+			canvas.onmousemove = (e)=>{
+				this.mouseLocation = this.getLocation(e.clientX, e.clientY);
+			}
+		}
+		drawCirecle(datas){
+			if (datas) {
+				let ctx = this.ctx;
+				ctx.save();
+				ctx.beginPath();
+				ctx.fillStyle = '#'+Math.floor(Math.random()*16777215).toString(16); ;
+				ctx.arc(datas.x,datas.y,0.5,0,Math.PI*2,false);
+				ctx.fill();
+				ctx.closePath();
+				ctx.restore();
+			}
+		}
+		drawLine1(points){
+			let self = this;
+			let ctx = self.ctx;
+			for (let i=0;i<points.length;i++) {
+				self.ctx.moveTo(points[i].x,points[i].y); 
+				self.ctx.lineTo(self.mouseLocation.x,self.mouseLocation.y);
+				ctx.lineWidth = 1; 
+				ctx.strokeStyle = 'white'; 
+				ctx.stroke();
+			}
+		}
+		drawLine2(points){
+			let self = this;
+			let ctx = self.ctx;
+			for(let i=0;i<points.length;i++){
+				for(let j=i;j<points.length;j++){
+					if(i!=j&&self.distance(points[i],points[j])<120){
+						self.ctx.moveTo(points[i].x,points[i].y); 
+						self.ctx.lineTo(points[j].x,points[j].y);
+					}
+				}
+			}
+			ctx.lineWidth = 1; 
+			ctx.strokeStyle = 'white'; 
+			ctx.stroke();
+		}
+		moveCirecle(){
+			let self = this;
+			self.ctx.clearRect(0,0,this.canvasWidth,this.canvasHeight);
+			let lineDatas = new Array();
+			for(let i=0;i<this.num;i++){
+				self.data[i].x += self.data[i].nextX;
+				self.data[i].y += self.data[i].nextY;
+				self.drawCirecle(self.data[i]);
+				if(self.data&&self.mouseLocation.x){
+					let distanceNumber = self.distance({x:self.data[i].x,y:self.data[i].y},self.mouseLocation);
+					if(distanceNumber<=150){
+						lineDatas.push(self.data[i])
+					}
+				}
+			}
+//			this.drawLine1(lineDatas);
+			this.drawLine2(lineDatas);
+		}
+		getLocation(x,y){
+			let bbox = canvas.getBoundingClientRect();  
+            return {  
+                x: (x - bbox.left) * (canvas.width / bbox.width),  
+                y: (y - bbox.top) * (canvas.height / bbox.height) 
+            }; 
+		}
+		distance(point,mouse) {
+			let x1 = point.x;
+			let y1 = point.y;
+			let x2 = mouse.x;
+			let y2 = mouse.y;
+			let xdiff = x2 - x1;
+			let ydiff = y2 - y1;
+			return Math.pow((xdiff * xdiff + ydiff * ydiff), 0.5);
+		}
+	}
+	let starrySkyObj = new starrySky(canvas);
+</script>
+</body>
+</html>
